@@ -19,7 +19,7 @@ use Logger\ConsoleLogger;
 $inDirectory = pathJoin(__DIR__, "in");
 $outDirectory = pathJoin(__DIR__, "out");
 
-function pathJoin(...$params)
+function pathJoin(string ...$params): string
 {
     return join(DIRECTORY_SEPARATOR, $params);
 }
