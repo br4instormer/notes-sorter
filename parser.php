@@ -81,14 +81,16 @@ function processFile(
     $doc->saveHTMLFile($outFilename);
 }
 
-function clearDirectory(string $directory): void
+function clearDirectory(string $directory): bool
 {
-    if (is_dir($directory)) {
-        $mask = pathJoin($directory, "*");
-        array_map('unlink', array_filter((array) array_merge(glob($mask))));
-    } else {
-        mkdir($directory);
+    if (!is_dir($directory)) {
+        return false;
     }
+
+    $mask = pathJoin($directory, "*");
+    array_map('unlink', array_filter((array) array_merge(glob($mask))));
+
+    return true;
 }
 
 function main(
@@ -102,7 +104,7 @@ function main(
         throw new Error("Source directory don't exists");
     }
 
-    clearDirectory($outDirectory);
+    clearDirectory($outDirectory) || mkdir($outDirectory);
     $logger->log("Destination directory clean");
 
     foreach (iterateDirectory($inDirectory) as $inFilename) {
