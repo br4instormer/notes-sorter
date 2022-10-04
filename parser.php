@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace parser;
+namespace Parser;
 
 require("consolelogger.php");
 
@@ -16,7 +16,6 @@ use Iterator;
 use UnexpectedValueException;
 use Logger\LoggerInterface;
 use Logger\ConsoleLogger;
-
 
 $inDirectory = pathJoin(__DIR__, "in");
 $outDirectory = pathJoin(__DIR__, "out");
