@@ -13,7 +13,6 @@ use DOMNodeList;
 use DomXPath;
 use Error;
 use Iterator;
-use UnexpectedValueException;
 use Logger\LoggerInterface;
 use Logger\ConsoleLogger;
 
