@@ -4,25 +4,11 @@ declare(strict_types=1);
 
 namespace Parser;
 
-require("consolelogger.php");
-
-use DirectoryIterator;
 use DOMDocument;
 use DOMElement;
 use DOMNodeList;
 use DomXPath;
 use Error;
-use Iterator;
-use Logger\LoggerInterface;
-use Logger\ConsoleLogger;
-
-$inDirectory = pathJoin(__DIR__, "in");
-$outDirectory = pathJoin(__DIR__, "out");
-
-function pathJoin(string ...$params): string
-{
-    return join(DIRECTORY_SEPARATOR, $params);
-}
 
 function replaceElements(DOMDocument $doc, array $sortedElements): DOMDocument
 {
@@ -39,27 +25,16 @@ function findElements(DOMDocument $doc, string $classname): mixed
 {
     $xpath = new DomXPath($doc);
 
-    return $xpath->query("//div[contains(@class, \"$classname\")]");
+    return $xpath->query(sprintf('//div[contains(@class, "%s")]', $classname));
 }
 
 function sortElements(DOMNodeList $elements): array
 {
     $sorted = iterator_to_array($elements);
 
-    usort($sorted, fn (DOMElement $a, DOMElement $b): int => intval($a->firstElementChild->nodeValue) - intval($b->firstElementChild->nodeValue));
+    usort($sorted, fn (DOMElement $a, DOMElement $b): int => intval($a->firstElementChild->nodeValue) <=> intval($b->firstElementChild->nodeValue));
 
     return $sorted;
-}
-
-function iterateDirectory(string $directory): Iterator
-{
-    foreach (new DirectoryIterator($directory) as $fileInfo) {
-        if ($fileInfo->isDot() || !$fileInfo->isFile()) {
-            continue;
-        }
-
-        yield $fileInfo->getPathname();
-    }
 }
 
 function processFile(
@@ -80,45 +55,3 @@ function processFile(
     $doc = replaceElements($doc, sortElements($elements));
     $doc->saveHTMLFile($outFilename);
 }
-
-function clearDirectory(string $directory): bool
-{
-    if (!is_dir($directory)) {
-        return false;
-    }
-
-    $mask = pathJoin($directory, "*");
-    array_map('unlink', array_filter((array) array_merge(glob($mask))));
-
-    return true;
-}
-
-function main(
-    string $inDirectory,
-    string $outDirectory,
-    LoggerInterface $logger
-): void {
-    $classname = "bookmark";
-
-    if (!is_dir($inDirectory)) {
-        throw new Error("Source directory don't exists");
-    }
-
-    clearDirectory($outDirectory) || mkdir($outDirectory);
-    $logger->log("Destination directory clean");
-
-    foreach (iterateDirectory($inDirectory) as $inFilename) {
-        $filename = basename($inFilename);
-        $outFilename = pathJoin($outDirectory, $filename);
-
-        $logger->log("Processing file \"$filename\"");
-        processFile($inFilename, $outFilename, $classname);
-        $logger->log("File \"$filename\" processed");
-    }
-}
-
-main(
-    $inDirectory,
-    $outDirectory,
-    new ConsoleLogger()
-);
